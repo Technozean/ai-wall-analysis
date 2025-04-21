@@ -30,3 +30,5 @@ ehthumbs.db
 *.log
 
 # Unit test /
+.env
+.env.*
