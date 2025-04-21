@@ -45,8 +45,34 @@ def encode_image_to_data_url(image_file):
 
 
 def analyze_wall_images(image_files):
+    prompt = '''
+    Please analyze the attached up to 3 images of a wall surface for potential painting-related defects.
+
+    Objective:
+    To receive a precise, AI-based assessment of visible surface defects, understand possible root causes, and get recommendations for surface preparation and painting products.
+
+    Required Output:
+
+    Defect Classification
+
+    List and describe visible defects (e.g., moisture, cracks, peeling, efflorescence, mold, chalking, surface contamination, uneven surface).
+
+    Root Cause Insight
+
+    Explain the likely underlying cause for each defect.
+
+    Actionable Recommendations
+
+    Steps for surface preparation before painting.
+
+    Suggest relevant product types (e.g., primers, waterproofing, putty, etc.).
+
+    Assessment Notes
+
+    Feedback on image quality, angles, or anything that would improve analysis accuracy (if needed).
+    '''.strip().replace('  ', '')
     contents = [
-        {"type": "input_text", "text": "Analyze these wall images. Identify visible issues like cracks, dampness, or peeling paint. Provide the possible cause and recommended treatment and paint options. If you find that the image contains no wall and something else than in response say :Please upload wall photo "}
+        {"type": "input_text", "text": prompt}
     ]
     image_bytes_list = []
 
