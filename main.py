@@ -67,9 +67,10 @@ def analyze_wall_images(image_files):
 
     Suggest relevant product types (e.g., primers, waterproofing, putty, etc.).
 
-    Assessment Notes
+    Suggest suitable paint products for the wall surface, considering the identified defects and root causes.
 
-    Feedback on image quality, angles, or anything that would improve analysis accuracy (if needed).
+    Dont ask any follow up questions
+
     '''.strip().replace('  ', '')
     contents = [
         {"type": "input_text", "text": prompt}
