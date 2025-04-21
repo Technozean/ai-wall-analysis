@@ -1,10 +1,9 @@
 import streamlit as st
 from PIL import Image
 import base64
-import requests
-from openai import OpenAI
 import os
 from dotenv import load_dotenv
+from openai import OpenAI
 
 load_dotenv()
 api_key = os.getenv("OPENAI_API_KEY")
@@ -14,23 +13,29 @@ if 'history' not in st.session_state:
     st.session_state.history = []
 
 st.title("Wall Issue Detector and Paint Recommendation System")
-st.write("Upload or capture a photo of your wall, and we'll analyze it for issues and suggest treatments.")
+st.write("Upload or capture up to 3 photos of your wall, and we'll analyze them for issues and suggest treatments.")
 
 st.sidebar.header("Upload History")
 if st.session_state.history:
-    for idx, (img_bytes, result) in enumerate(reversed(st.session_state.history), 1):
-        st.sidebar.image(img_bytes, caption=f"Previous Upload #{len(st.session_state.history) - idx + 1}", use_container_width=True)
+    for idx, (img_bytes_list, result) in enumerate(reversed(st.session_state.history), 1):
+        for img_idx, img_bytes in enumerate(img_bytes_list):
+            st.sidebar.image(img_bytes, caption=f"Upload #{len(st.session_state.history) - idx + 1}, Image {img_idx + 1}", use_container_width=True)
         with st.sidebar.expander("View Analysis"):
             st.markdown(result)
 else:
     st.sidebar.info("No uploads yet.")
 
-input_method = st.radio("Choose input method:", ("Upload Image", "Use Camera"))
+input_method = st.radio("Choose input method:", ("Upload Images", "Use Camera (one at a time)"))
 
-if input_method == "Upload Image":
-    uploaded_file = st.file_uploader("Upload a photo of your wall", type=["jpg", "jpeg", "png"])
+uploaded_files = []
+
+if input_method == "Upload Images":
+    uploaded_files = st.file_uploader("Upload up to 3 photos of your wall", type=["jpg", "jpeg", "png"], accept_multiple_files=True)
+    uploaded_files = uploaded_files[:3]  
 else:
-    uploaded_file = st.camera_input("Take a photo of your wall")
+    camera_img = st.camera_input("Take a photo of your wall")
+    if camera_img:
+        uploaded_files = [camera_img]  
 
 def encode_image_to_data_url(image_file):
     image_bytes = image_file.read()
@@ -38,30 +43,34 @@ def encode_image_to_data_url(image_file):
     mime_type = Image.open(image_file).get_format_mimetype()
     return f"data:{mime_type};base64,{base64_image}", image_bytes
 
-def analyze_wall_image(data_url):
+
+def analyze_wall_images(image_files):
+    contents = [
+        {"type": "input_text", "text": "Analyze these wall images. Identify visible issues like cracks, dampness, or peeling paint. Provide the possible cause and recommended treatment and paint options. If you find that the image contains no wall and something else than in response say :Please upload wall photo "}
+    ]
+    image_bytes_list = []
+
+    for file in image_files:
+        data_url, img_bytes = encode_image_to_data_url(file)
+        contents.append({"type": "input_image", "image_url": data_url})
+        image_bytes_list.append(img_bytes)
+
     response = client.responses.create(
         model="gpt-4.1-mini",
-        input=[{
-            "role": "user",
-            "content": [
-                {"type": "input_text", "text": "Analyze this wall image. Identify visible issues like cracks, dampness, or peeling paint. Provide the possible cause and recommended treatment and paint options."},
-                {"type": "input_image", "image_url": data_url}
-            ]
-        }],
+        input=[{"role": "user", "content": contents}]
     )
-    return response.output_text
+    return response.output_text, image_bytes_list
 
-if uploaded_file is not None:
-    data_url, raw_image_bytes = encode_image_to_data_url(uploaded_file)
+if uploaded_files:
+    for file in uploaded_files:
+        st.image(file, caption="Wall Photo", use_container_width=True)
 
-    st.image(raw_image_bytes, caption="Wall Photo", use_container_width=True)
-
-    with st.spinner("Analyzing the wall image using AI..."):
-        analysis_result = analyze_wall_image(data_url)
+    with st.spinner("Analyzing the wall images using AI..."):
+        analysis_result, image_bytes_list = analyze_wall_images(uploaded_files)
 
     st.subheader("AI Analysis and Recommendations")
     st.write(analysis_result)
 
-    st.session_state.history.append((raw_image_bytes, analysis_result))
+    st.session_state.history.append((image_bytes_list, analysis_result))
 else:
-    st.info("Please upload or capture a wall photo to begin analysis.")
+    st.info("Please upload or capture up to 3 wall photos to begin analysis.")
