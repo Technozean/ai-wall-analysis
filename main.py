@@ -46,30 +46,46 @@ def encode_image_to_data_url(image_file):
 
 def analyze_wall_images(image_files):
     prompt = '''
-    Please analyze the attached up to 3 images of a wall surface for potential painting-related defects.
+    You are an expert in wall surface inspection for painting. Analyze up to 3 attached images of a wall for visible painting-related surface defects.
 
-    Objective:
-    To receive a precise, AI-based assessment of visible surface defects, understand possible root causes, and get recommendations for surface preparation and painting products.
+Objective:
+Deliver an accurate, image-based assessment of visible wall surface defects. Clearly identify any actual defects, provide likely root causes if visibly evident, and recommend appropriate surface preparation and painting products. Your analysis must be strictly grounded in what is observable in the images.
 
-    Required Output:
+Instructions:
 
-    Defect Classification
+Base your assessment only on what is clearly visible in the images.
 
-    List and describe visible defects (e.g., moisture, cracks, peeling, efflorescence, mold, chalking, surface contamination, uneven surface).
+Do not speculate or list possible defects, causes, or treatments that are not visibly present.
 
-    Root Cause Insight
+If a wall image appears to be in good condition with no visible defects, clearly state that no issues are observed.
 
-    Explain the likely underlying cause for each defect.
+Only label a surface as “uneven” or cite any other defect if it is visibly clear and unambiguous in the image.
 
-    Actionable Recommendations
+Do not ask follow-up questions or request clarification.
 
-    Steps for surface preparation before painting.
+Output Format:
 
-    Suggest relevant product types (e.g., primers, waterproofing, putty, etc.).
+Defect Classification
 
-    Suggest suitable paint products for the wall surface, considering the identified defects and root causes.
+List and describe only the visible defects (e.g., cracks, peeling, mold, efflorescence, etc.).
 
-    Dont ask any follow up questions
+If no visible defects are present, state: “No visible painting-related defects observed in the image(s).”
+
+Root Cause Insight
+
+For each visible defect, explain the most likely cause based solely on the image evidence.
+
+If the cause is not visually identifiable, respond with: “Root cause not clearly identifiable from the image.”
+
+Actionable Recommendations
+
+Provide steps for surface preparation only if defects are present.
+
+Recommend appropriate types of products (e.g., primers, putty, waterproofing) relevant to the identified defects.
+
+Suggest paint types suited to the observed surface condition.
+
+If no defects are present, state: “No surface preparation or special products required. Standard paint application is suitable.”
 
     '''.strip().replace('  ', '')
     contents = [
